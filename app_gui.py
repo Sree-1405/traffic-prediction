@@ -69,10 +69,18 @@ class TrafficGUI:
         self.btn_graph = tk.Button(self.root, text="Accuracy & Loss Graphs", font=button_font, command=self.action_graph, width=22, bg="white")
         self.btn_graph.place(x=20, y=btn_y_start + (btn_spacing * 2))
 
+        # Live Predict Button
+        self.btn_live_predict = tk.Button(self.root, text="Predict Live Traffic State", font=button_font, command=self.action_predict_live, width=30, bg="white")
+        self.btn_live_predict.place(x=300, y=btn_y_start + (btn_spacing * 2))
+
         # Text Console Box for output
         text_font = font.Font(family="Arial", size=12, weight="bold")
         self.text_output = tk.Text(self.root, width=50, height=20, font=text_font, bg="white", fg="black", bd=2, relief="groove")
         self.text_output.place(x=20, y=280)
+        
+        # Image Label for Live Traffic
+        self.traffic_img_label = tk.Label(self.root, bg="#2b2b2b")
+        self.traffic_img_label.place(x=550, y=280, width=400, height=300)
         
         self.log_message("Welcome to the Intelligent Transport Systems Simulator.")
 
@@ -111,6 +119,24 @@ class TrafficGUI:
         success, msg = self.model.show_accuracy_graphs()
         if not success:
             self.log_message(msg)
+
+    def action_predict_live(self):
+        success, state = self.model.get_sample_prediction()
+        if not success:
+            self.log_message(state)
+            return
+            
+        self.log_message(f"Diffusion Model Live Prediction: {state.capitalize()} Traffic")
+        
+        img_path = os.path.join("pictures", f"{state}.jpeg")
+        if os.path.exists(img_path):
+            img = Image.open(img_path)
+            img = img.resize((400, 300), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            self.traffic_img_label.config(image=photo)
+            self.traffic_img_label.image = photo
+        else:
+            self.log_message(f"Warning: Image not found at {img_path}")
 
 if __name__ == "__main__":
     root = tk.Tk()

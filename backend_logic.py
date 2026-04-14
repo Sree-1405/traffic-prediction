@@ -29,7 +29,7 @@ class TrafficDiffusionModel:
         q1, q2 = np.percentile(speed_data, [33, 66])
         labels = np.zeros(len(speed_data), dtype=int)
         labels[speed_data <= q1] = 0        # Low
-        labels[(speed_data > q1) & (speed_data <= q2)] = 1  # Moderate
+        labels[(speed_data > q1) & (speed_data <= q2)] = 1  # Medium
         labels[speed_data > q2] = 2         # High
         return labels
 
@@ -38,7 +38,7 @@ class TrafficDiffusionModel:
             return False, "Dataset not loaded. Please upload dataset first."
         
         self.y_true = self._create_labels(self.speed)
-        return True, "Data successfully preprocessed and labeled into\n[Low, Moderate, High] status points."
+        return True, "Data successfully preprocessed and labeled into\n[Low, Medium, High] status points."
 
     def generate_models(self):
         if self.y_true is None:
@@ -114,8 +114,8 @@ class TrafficDiffusionModel:
         plt.title("Confusion Matrix – Diffusion-Based Model")
         plt.xlabel("Predicted Traffic State")
         plt.ylabel("Actual Traffic State")
-        plt.xticks([0, 1, 2], ["Low", "Moderate", "High"])
-        plt.yticks([0, 1, 2], ["Low", "Moderate", "High"])
+        plt.xticks([0, 1, 2], ["Low", "Medium", "High"])
+        plt.yticks([0, 1, 2], ["Low", "Medium", "High"])
 
         for i in range(3):
             for j in range(3):
@@ -125,3 +125,14 @@ class TrafficDiffusionModel:
         plt.tight_layout()
         plt.show()
         return True, "Confusion matrix mapping predicted traffic displayed."
+
+    def get_sample_prediction(self):
+        if not self.metrics_computed or self.y_diff is None:
+            return False, "Models not generated yet. Please generate models first."
+        
+        idx = np.random.randint(0, len(self.y_diff))
+        pred_label = self.y_diff[idx]
+        
+        mapping = {0: "low", 1: "medium", 2: "high"}
+        
+        return True, mapping.get(pred_label, "unknown")
